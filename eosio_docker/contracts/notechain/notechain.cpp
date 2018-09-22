@@ -53,8 +53,7 @@ private:
     auto primary_key() const { return name; }
   };
 
-  typedef eosio::multi_index<N(votes), s_vote>
-      tb_votes;
+  typedef eosio::multi_index<N(votes), s_vote> tb_votes;
   typedef eosio::multi_index<N(accounts2), s_account> tb_accounts;
   typedef eosio::multi_index<N(kycproviders), s_kyc_provider> tb_kyc_providers;
 
@@ -100,7 +99,7 @@ public:
 
     double newScore = computeTrustScore(voter_account->trust_score, voted_for_account->trust_score, upvote);
     // _self pays for RAM
-    accounts.modify(voted_for_account, _self, [&](auto& a) {
+    accounts.modify(voted_for_account, _self, [&](auto &a) {
       a.trust_score = newScore;
     });
   }
@@ -119,7 +118,7 @@ public:
     eosio_assert(user_account != accounts.end(), "account does not exist");
 
     // _self pays for RAM
-    accounts.modify(user_account, _self, [&](auto& a) {
+    accounts.modify(user_account, _self, [&](auto &a) {
       a.kycd = true;
     });
   }
@@ -138,6 +137,43 @@ public:
       p.name = kyc_provider;
     });
   }
+
+  // THIS ACTION IS ONLY FOR DEMONSTRATION PURPOSES
+  /// @abi action
+  void reset()
+  {
+    auto it = accounts.begin();
+    while (it != accounts.end())
+    {
+      // delete all votes of that account
+      tb_votes votes(_self, it->name);
+      auto vote = votes.begin();
+      while (vote != votes.end())
+      {
+        vote = votes.erase(vote);
+      }
+
+      // reset score to 1
+      accounts.modify(it, _self, [&](auto a) {
+        a.trust_score = 1.0;
+        a.kycd = false;
+      });
+
+      it++;
+    }
+
+    accounts.modify(accounts.find(N(useraaaaaaaa)), _self, [&](auto &a) {
+      a.trust_score = 10;
+    });
+
+    accounts.modify(accounts.find(N(useraaaaaaab)), _self, [&](auto &a) {
+      a.trust_score = 100;
+    });
+
+    accounts.modify(accounts.find(N(useraaaaaaac)), _self, [&](auto &a) {
+      a.trust_score = 200;
+    });
+  }
 };
 
-EOSIO_ABI(notechain, (registeracct)(vote)(submitkyc)(addkycprovdr))
+EOSIO_ABI(notechain, (registeracct)(vote)(submitkyc)(addkycprovdr)(reset))
