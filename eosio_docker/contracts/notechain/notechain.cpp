@@ -19,7 +19,7 @@ using namespace eosio;
 
 double inline computeTrustScore(const double &voter_score, const double &voted_for_score, const int8_t &vote_strength)
 {
-  return voted_for_score + 0.1 * vote_strength * voter_score;
+  return voted_for_score + 0.1 * vote_strength / 100 * voter_score;
 }
 class notechain : public eosio::contract
 {
@@ -81,7 +81,7 @@ public:
   {
     require_auth(voter_name);
 
-    eosio_assert(vote_strength >= -10 && vote_strength <= 10, "vote strength must be between -10 and 10");
+    eosio_assert(vote_strength >= -100 && vote_strength <= 100, "vote strength must be between -10 and 10");
 
         auto voter_account = accounts.find(voter_name);
     eosio_assert(voter_account != accounts.end(), "voter account does not exist");
