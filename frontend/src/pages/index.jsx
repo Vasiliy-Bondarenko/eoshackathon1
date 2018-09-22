@@ -12,6 +12,7 @@ import CardContent from '@material-ui/core/CardContent';
 // import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import Avatar from '@material-ui/core/Avatar';
+import VoteBtn from './VoteBtn.jsx';
 
 // This is for demo purposes only!
 import accounts from '../accounts'
@@ -29,7 +30,8 @@ class Index extends Component {
         this.vote = this.vote.bind( this );
     }
 
-    async vote(votingUser, votedUser, direction) {
+    async vote(votedUser) {
+        const votingUser = this.state.actingAs
         const eos = Eos( { keyProvider: this.privKeyFor( votingUser ) } );
         const tx  = {
             actions: [{
@@ -42,7 +44,7 @@ class Index extends Component {
                 data: {
                     voter_name: votingUser,
                     voted_for_name: votedUser,
-                    upvote: direction === "UP" ? 1 : 0,
+                    upvote: 5, // take this value from slider or radiobutton
                 },
             }],
         }
@@ -88,16 +90,6 @@ class Index extends Component {
         this.setState( state => ({
             actingAs: user
         }) );
-    }
-
-    voteUp(votedUser) {
-        const votingUser = this.state.actingAs
-        this.vote( votingUser, votedUser, "UP" )
-    }
-
-    voteDown(votedUser) {
-        const votingUser = this.state.actingAs
-        this.vote( votingUser, votedUser, "DOWN" )
     }
 
     // gets table data from the blockchain
@@ -160,18 +152,7 @@ class Index extends Component {
                         >Act as</Button>
                     </Typography>
                     <Typography component="pre">
-                        <Button
-                            onClick={e => {this.voteUp( row.name )}}
-                            variant="contained"
-                            color="primary"
-                            className={classes.button}
-                        >Vote Up</Button>
-                        <Button
-                            onClick={e => {this.voteDown( row.name )}}
-                            variant="contained"
-                            color="secondary"
-                            className={classes.button}
-                        >Vote Down</Button>
+                        <VoteBtn accounts={accounts} name={row.name} />
                         {actingAs === "kycprovider1" &&
                         <Button
                             onClick={e => {this.kycApprove( row.name )}}

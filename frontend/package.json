@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^1.5.1",
+    "@material-ui/lab": "^3.0.0-alpha.16",
     "eosjs": "16.0.7",
     "lodash": "^4.17.11",
     "react": "^16.4.2",
