@@ -10,16 +10,13 @@ class VoteBtn extends Component {
         super( props )
         this.state           = {
             voteValue: 0,
-            accounts: props.accounts,
-            name: props.name,
         };
         this.vote = this.vote.bind( this );
     }
 
     async vote() {
-        const votedUser = this.state.name
-        const value = this.state.voteValue
-        const votingUser = this.state.actingAs
+        const votedUser = this.props.name
+        const votingUser = this.props.actingAs
         const eos = Eos( { keyProvider: this.privKeyFor( votingUser ) } );
         const tx  = {
             actions: [{
@@ -32,7 +29,7 @@ class VoteBtn extends Component {
                 data: {
                     voter_name: votingUser,
                     voted_for_name: votedUser,
-                    upvote: value,
+                    vote_strength: this.state.voteValue,
                 },
             }],
         }
@@ -42,11 +39,11 @@ class VoteBtn extends Component {
         console.log( result );
 
         // refresh table to get updated info
-        this.refreshTable();
+        this.props.refreshTable();
     }
 
     privKeyFor() {
-        return _.find( this.state.accounts, a => a.name === this.state.name).privateKey
+        return _.find( this.props.accounts, a => a.name === this.props.actingAs).privateKey
     }
 
     // gets table data from the blockchain
@@ -72,12 +69,12 @@ class VoteBtn extends Component {
     render() {
         return (
             <div>
-                {this.state.voteValue}
+                {this.state.voteValue}%
                 <Slider value={this.state.voteValue}
                         onChange={this.handleChange}
-                        max={10}
-                        min={-10}
-                        step={1}
+                        max={100}
+                        min={-100}
+                        step={5}
                 />
                 <Button onClick={e => {this.vote()}}
                     variant="contained"

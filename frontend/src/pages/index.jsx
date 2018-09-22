@@ -28,6 +28,7 @@ class Index extends Component {
             actingAs: "useraaaaaaab"
         };
         this.vote = this.vote.bind( this );
+        this.refreshTable = this.refreshTable.bind( this );
     }
 
     async vote(votedUser) {
@@ -152,7 +153,11 @@ class Index extends Component {
                         >Act as</Button>
                     </Typography>
                     <Typography component="pre">
-                        <VoteBtn accounts={accounts} name={row.name} />
+                        <VoteBtn accounts={accounts}
+                                 name={row.name}
+                                 actingAs={this.state.actingAs}
+                                 refreshTable={this.refreshTable}
+                        />
                         {actingAs === "kycprovider1" &&
                         <Button
                             onClick={e => {this.kycApprove( row.name )}}
