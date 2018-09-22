@@ -132,14 +132,12 @@ public:
 
     // KYC provider must be in our list of trusted KYC providers
     auto found_provider = kyc_providers.find(kyc_provider);
-    eosio_assert(found_provider != kyc_providers.end(), "KYC provider already exists");
+    eosio_assert(found_provider == kyc_providers.end(), "KYC provider already exists");
 
     kyc_providers.emplace(_self, [&](s_kyc_provider &p) {
       p.name = kyc_provider;
     });
   }
-
-
 };
 
 EOSIO_ABI(notechain, (registeracct)(vote)(submitkyc)(addkycprovdr))

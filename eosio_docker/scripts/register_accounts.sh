@@ -27,3 +27,5 @@ jq -c '.[]' accounts.json | while read i; do
   # to simplify, we use the same key for owner and active key of each account
   cleos push action notechainacc registeracct ["$name"] -p notechainacc
 done
+
+cleos push action notechainacc addkycprovdr ["kycprovider1"] -p notechainacc
