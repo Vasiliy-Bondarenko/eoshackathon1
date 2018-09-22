@@ -89,7 +89,7 @@ public:
 
     tb_votes votes_from_voter(_self, voter_name);
     auto vote = votes_from_voter.find(voted_for_name);
-    eosio_assert(vote == votes_from_voter.end(), "already voted for that account");
+    eosio_assert(vote == votes_from_voter.end(), "already voted for that accountgit ");
 
     votes_from_voter.emplace(voter_name, [&](s_vote &v) {
       v.voted_for = voted_for_name;
@@ -100,6 +100,24 @@ public:
     // _self pays for RAM
     voted_for.set(voted_for_account, _self);
   }
+
+  /// @abi action
+  void submitkyc(account_name kyc_provider, account_name user_name)
+  {
+    require_auth(kyc_provider);
+
+    // KYC provider must be in our list of trusted KYC providers
+    auto found_provider = kyc_providers.find(kyc_provider);
+    eosio_assert(found_provider != kyc_providers.end(), "KYC submission from this account are not supported");
+
+    tb_accounts user(_self, user_name);
+    eosio_assert(user.exists(), "voter account does not exist");
+    s_account user_account = user.get();
+
+    user_account.kycd = true;
+    // _self pays for RAM
+    user.set(user_account, _self);
+  }
 };
 
-EOSIO_ABI(notechain, (registeracct))
+EOSIO_ABI(notechain, (registeracct)(vote)(submitkyc))
