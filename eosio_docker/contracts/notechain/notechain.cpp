@@ -1,5 +1,6 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/print.hpp>
+#include <eosiolib/singleton.hpp>
 using namespace eosio;
 
 // Smart Contract Name: notechain
@@ -15,67 +16,59 @@ using namespace eosio;
 //   update => put the note into the multi-index table and sign by the given account
 
 // Replace the contract class name when you start your own project
-class notechain : public eosio::contract {
-  private:
-    bool isnewuser( account_name user ) {
-      notetable noteobj(_self, _self);
-      // get object by secordary key
-      auto notes = noteobj.get_index<N(getbyuser)>();
-      auto note = notes.find(user);
+class notechain : public eosio::contract
+{
+private:
+  /// @abi table
+  struct s_vote
+  {
+    uint64_t id;
+    account_name voter;
+    account_name voted_for;
 
-      return note == notes.end();
-    }
+    auto primary_key() const { return id; }
+  };
 
-    /// @abi table
-    struct notestruct {
-      uint64_t      prim_key;  // primary key
-      account_name  user;      // account name for the user
-      std::string   note;      // the note message
-      uint64_t      timestamp; // the store the last update block time
+  /// @abi table
+  struct s_account
+  {
+    account_name name;
+    uint32_t trust_score;
 
-      // primary key
-      auto primary_key() const { return prim_key; }
-      // secondary key: user
-      account_name get_by_user() const { return user; }
-    };
+    auto primary_key() const { return name; }
+  };
 
-    // create a multi-index table and support secondary key
-    typedef eosio::multi_index< N(notestruct), notestruct,
-      indexed_by< N(getbyuser), const_mem_fun<notestruct, account_name, &notestruct::get_by_user> >
-      > notetable;
+  /// @abi table
+  struct s_kyc_provider
+  {
+    account_name name;
 
-  public:
-    using contract::contract;
+    auto primary_key() const { return name; }
+  };
 
-    /// @abi action
-    void update( account_name _user, std::string& _note ) {
-      // to sign the action with the given account
-      require_auth( _user );
+  typedef eosio::multi_index<N(votes), s_vote>
+      tb_votes;
+  typedef eosio::singleton<N(accounts), s_account> tb_accounts;
+  typedef eosio::multi_index<N(kycproviders), s_kyc_provider> tb_kyc_providers;
 
-      notetable obj(_self, _self); // code, scope
+  tb_votes votes;
+  tb_kyc_providers kyc_providers;
 
-      // create new / update note depends whether the user account exist or not
-      if (isnewuser(_user)) {
-        // insert object
-        obj.emplace( _self, [&]( auto& address ) {
-          address.prim_key    = obj.available_primary_key();
-          address.user        = _user;
-          address.note        = _note;
-          address.timestamp   = now();
-        });
-      } else {
-        // get object by secordary key
-        auto notes = obj.get_index<N(getbyuser)>();
-        auto &note = notes.get(_user);
-        // update object
-        obj.modify( note, _self, [&]( auto& address ) {
-          address.note        = _note;
-          address.timestamp   = now();
-        });
-      }
-    }
+public:
+  notechain(account_name self) : contract(self), votes(_self, _self), kyc_providers(_self, _self)
+  {
+  }
+
+  /// @abi action
+  void registeracct(account_name user)
+  {
+    tb_accounts accounts(_self, user);
+    eosio_assert(!accounts.exists(), "account already exists");
+    // let _self pay for the RAM
+    accounts.set(s_account{user}, _self);
+  }
+
 
 };
 
-// specify the contract name, and export a public action: update
-EOSIO_ABI( notechain, (update) )
+EOSIO_ABI(notechain, (registeracct))
