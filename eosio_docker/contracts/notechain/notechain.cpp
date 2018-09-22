@@ -91,7 +91,7 @@ public:
 
     tb_votes votes_from_voter(_self, voter_name);
     auto vote = votes_from_voter.find(voted_for_name);
-    eosio_assert(vote == votes_from_voter.end(), "already voted for that accountgit ");
+    eosio_assert(vote == votes_from_voter.end(), "already voted for that account");
 
     votes_from_voter.emplace(voter_name, [&](s_vote &v) {
       v.voted_for = voted_for_name;
