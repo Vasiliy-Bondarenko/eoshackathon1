@@ -13,7 +13,8 @@ mkdir -p ./compiled_contracts/$1
 COMPILEDCONTRACTSPATH="$( pwd -P )/compiled_contracts"
 
 # unlock the wallet, ignore error if already unlocked
-if [ ! -z $3 ]; then cleos wallet unlock -n $3 --password $4 || true; fi
+#if [ ! -z $3 ]; then cleos wallet unlock -n $3 --password $4 || true; fi
+if [ ! -z $3 ]; then cleos wallet unlock -n $3 --password $(cat  notechain_wallet_password.txt) || true; fi
 
 # compile smart contract to wast and abi files
 (

@@ -1,0 +1,1 @@
+docker exec -it eosio_notechain_container ./scripts/deploy_contract.sh notechain notechainacc notechainwal
