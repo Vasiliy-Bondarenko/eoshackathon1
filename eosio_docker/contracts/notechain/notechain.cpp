@@ -17,7 +17,7 @@ using namespace eosio;
 
 // Replace the contract class name when you start your own project
 
-double inline computeTrustScore(double &voter_score, double &voted_for_score, bool upvote)
+double inline computeTrustScore(const double &voter_score, const double &voted_for_score, bool upvote)
 {
   return voted_for_score + 0.1 * voter_score * (upvote ? 1 : -1);
 }
@@ -55,23 +55,27 @@ private:
 
   typedef eosio::multi_index<N(votes), s_vote>
       tb_votes;
-  typedef eosio::singleton<N(accounts), s_account> tb_accounts;
+  typedef eosio::multi_index<N(accounts), s_account> tb_accounts;
   typedef eosio::multi_index<N(kycproviders), s_kyc_provider> tb_kyc_providers;
 
   tb_kyc_providers kyc_providers;
+  tb_accounts accounts;
 
 public:
-  notechain(account_name self) : contract(self), kyc_providers(_self, _self)
+  notechain(account_name self) : contract(self), kyc_providers(_self, _self), accounts(_self, _self)
   {
   }
 
   /// @abi action
   void registeracct(account_name user)
   {
-    tb_accounts accounts(_self, user);
-    eosio_assert(!accounts.exists(), "account already exists");
+    eosio_assert(accounts.find(user) == accounts.end(), "account already exists");
     // let _self pay for the RAM
-    accounts.set(s_account{user}, _self);
+    accounts.emplace(_self, [&](s_account &a) {
+      a.name = user;
+      a.trust_score = 0;
+      a.kycd = false;
+    });
   }
 
   /// @abi action
@@ -79,13 +83,11 @@ public:
   {
     require_auth(voter_name);
 
-    tb_accounts voter(_self, voter_name);
-    eosio_assert(voter.exists(), "voter account does not exist");
-    s_account voter_account = voter.get();
+    auto voter_account = accounts.find(voter_name);
+    eosio_assert(voter_account != accounts.end(), "voter account does not exist");
 
-    tb_accounts voted_for(_self, voted_for_name);
-    eosio_assert(voted_for.exists(), "account being voted for does not exist");
-    s_account voted_for_account = voted_for.get();
+    auto voted_for_account = accounts.find(voted_for_name);
+    eosio_assert(voted_for_account != accounts.end(), "account being voted for does not exist");
 
     tb_votes votes_from_voter(_self, voter_name);
     auto vote = votes_from_voter.find(voted_for_name);
@@ -96,9 +98,11 @@ public:
       v.upvote = upvote;
     });
 
-    voted_for_account.trust_score = computeTrustScore(voter_account.trust_score, voted_for_account.trust_score, upvote);
+    double newScore = computeTrustScore(voter_account->trust_score, voted_for_account->trust_score, upvote);
     // _self pays for RAM
-    voted_for.set(voted_for_account, _self);
+    accounts.modify(voted_for_account, _self, [&](auto& a) {
+      a.trust_score = newScore;
+    });
   }
 
   /// @abi action
@@ -111,12 +115,13 @@ public:
     eosio_assert(found_provider != kyc_providers.end(), "KYC submission from this account are not supported");
 
     tb_accounts user(_self, user_name);
-    eosio_assert(user.exists(), "voter account does not exist");
-    s_account user_account = user.get();
+    auto user_account = accounts.find(user_name);
+    eosio_assert(user_account != accounts.end(), "account does not exist");
 
-    user_account.kycd = true;
     // _self pays for RAM
-    user.set(user_account, _self);
+    accounts.modify(user_account, _self, [&](auto& a) {
+      a.kycd = true;
+    });
   }
 
   /// @abi action
