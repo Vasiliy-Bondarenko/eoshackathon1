@@ -17,9 +17,9 @@ using namespace eosio;
 
 // Replace the contract class name when you start your own project
 
-double inline computeTrustScore(const double &voter_score, const double &voted_for_score, bool upvote)
+double inline computeTrustScore(const double &voter_score, const double &voted_for_score, const int8_t &vote_strength)
 {
-  return voted_for_score + 0.1 * voter_score * (upvote ? 1 : -1);
+  return voted_for_score + 0.1 * vote_strength * voter_score;
 }
 class notechain : public eosio::contract
 {
@@ -29,8 +29,7 @@ private:
   {
     // scoped by account_name
     account_name voted_for;
-    // true = upvote, false = downvote
-    bool upvote;
+    int8_t vote_strength;
 
     auto primary_key() const { return voted_for; }
   };
@@ -78,11 +77,13 @@ public:
   }
 
   /// @abi action
-  void vote(account_name voter_name, account_name voted_for_name, bool upvote)
+  void vote(account_name voter_name, account_name voted_for_name, int8_t vote_strength)
   {
     require_auth(voter_name);
 
-    auto voter_account = accounts.find(voter_name);
+    eosio_assert(vote_strength >= -10 && vote_strength <= 10, "vote strength must be between -10 and 10");
+
+        auto voter_account = accounts.find(voter_name);
     eosio_assert(voter_account != accounts.end(), "voter account does not exist");
 
     auto voted_for_account = accounts.find(voted_for_name);
@@ -94,10 +95,10 @@ public:
 
     votes_from_voter.emplace(voter_name, [&](s_vote &v) {
       v.voted_for = voted_for_name;
-      v.upvote = upvote;
+      v.vote_strength = vote_strength;
     });
 
-    double newScore = computeTrustScore(voter_account->trust_score, voted_for_account->trust_score, upvote);
+    double newScore = computeTrustScore(voter_account->trust_score, voted_for_account->trust_score, vote_strength);
     // _self pays for RAM
     accounts.modify(voted_for_account, _self, [&](auto &a) {
       a.trust_score = newScore;
