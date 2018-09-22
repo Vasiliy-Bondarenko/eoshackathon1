@@ -35,7 +35,7 @@ private:
     auto primary_key() const { return voted_for; }
   };
 
-  /// @abi table accounts i64
+  /// @abi table accounts2 i64
   struct s_account
   {
     account_name name;
@@ -55,7 +55,7 @@ private:
 
   typedef eosio::multi_index<N(votes), s_vote>
       tb_votes;
-  typedef eosio::multi_index<N(accounts), s_account> tb_accounts;
+  typedef eosio::multi_index<N(accounts2), s_account> tb_accounts;
   typedef eosio::multi_index<N(kycproviders), s_kyc_provider> tb_kyc_providers;
 
   tb_kyc_providers kyc_providers;
@@ -73,7 +73,7 @@ public:
     // let _self pay for the RAM
     accounts.emplace(_self, [&](s_account &a) {
       a.name = user;
-      a.trust_score = 0;
+      a.trust_score = 1.0;
       a.kycd = false;
     });
   }
