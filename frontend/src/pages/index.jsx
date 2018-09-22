@@ -130,7 +130,7 @@ class Index extends Component {
             <Card className={classes.card} key={index}>
                 <CardContent>
                     <Avatar alt="Remy Sharp"
-                            src="http://i.pravatar.cc/300?cache=" // set to index to get random image
+                            src={"http://i.pravatar.cc/300?cache=" + index} // set to index to get random image
                             className={classes.avatar}
                     />
 
