@@ -16,24 +16,31 @@ using namespace eosio;
 //   update => put the note into the multi-index table and sign by the given account
 
 // Replace the contract class name when you start your own project
+
+double inline computeTrustScore(double &voter_score, double &voted_for_score, bool upvote)
+{
+  return voted_for_score + 0.1 * voter_score * (upvote ? 1 : -1);
+}
 class notechain : public eosio::contract
 {
 private:
   /// @abi table
   struct s_vote
   {
-    uint64_t id;
-    account_name voter;
+    // scoped by account_name
     account_name voted_for;
+    // true = upvote, false = downvote
+    bool upvote;
 
-    auto primary_key() const { return id; }
+    auto primary_key() const { return voted_for; }
   };
 
   /// @abi table
   struct s_account
   {
     account_name name;
-    uint32_t trust_score;
+    double trust_score;
+    bool kycd;
 
     auto primary_key() const { return name; }
   };
@@ -51,11 +58,10 @@ private:
   typedef eosio::singleton<N(accounts), s_account> tb_accounts;
   typedef eosio::multi_index<N(kycproviders), s_kyc_provider> tb_kyc_providers;
 
-  tb_votes votes;
   tb_kyc_providers kyc_providers;
 
 public:
-  notechain(account_name self) : contract(self), votes(_self, _self), kyc_providers(_self, _self)
+  notechain(account_name self) : contract(self), kyc_providers(_self, _self)
   {
   }
 
@@ -68,7 +74,32 @@ public:
     accounts.set(s_account{user}, _self);
   }
 
+  /// @abi action
+  void vote(account_name voter_name, account_name voted_for_name, bool upvote)
+  {
+    require_auth(voter_name);
 
+    tb_accounts voter(_self, voter_name);
+    eosio_assert(voter.exists(), "voter account does not exist");
+    s_account voter_account = voter.get();
+
+    tb_accounts voted_for(_self, voted_for_name);
+    eosio_assert(voted_for.exists(), "account being voted for does not exist");
+    s_account voted_for_account = voted_for.get();
+
+    tb_votes votes_from_voter(_self, voter_name);
+    auto vote = votes_from_voter.find(voted_for_name);
+    eosio_assert(vote == votes_from_voter.end(), "already voted for that account");
+
+    votes_from_voter.emplace(voter_name, [&](s_vote &v) {
+      v.voted_for = voted_for_name;
+      v.upvote = upvote;
+    });
+
+    voted_for_account.trust_score = computeTrustScore(voter_account.trust_score, voted_for_account.trust_score, upvote);
+    // _self pays for RAM
+    voted_for.set(voted_for_account, _self);
+  }
 };
 
 EOSIO_ABI(notechain, (registeracct))
