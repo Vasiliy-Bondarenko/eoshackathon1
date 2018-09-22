@@ -24,7 +24,7 @@ double inline computeTrustScore(double &voter_score, double &voted_for_score, bo
 class notechain : public eosio::contract
 {
 private:
-  /// @abi table
+  /// @abi table votes i64
   struct s_vote
   {
     // scoped by account_name
@@ -35,7 +35,7 @@ private:
     auto primary_key() const { return voted_for; }
   };
 
-  /// @abi table
+  /// @abi table accounts i64
   struct s_account
   {
     account_name name;
@@ -45,7 +45,7 @@ private:
     auto primary_key() const { return name; }
   };
 
-  /// @abi table
+  /// @abi table kycproviders i64
   struct s_kyc_provider
   {
     account_name name;
