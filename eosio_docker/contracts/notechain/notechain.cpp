@@ -142,8 +142,7 @@ public:
   /// @abi action
   void reset()
   {
-    auto it = accounts.begin();
-    while (it != accounts.end())
+    for (auto it = accounts.begin(); it != accounts.end(); it++)
     {
       // delete all votes of that account
       tb_votes votes(_self, it->name);
@@ -154,12 +153,11 @@ public:
       }
 
       // reset score to 1
-      accounts.modify(it, _self, [&](auto a) {
+      accounts.modify(it, _self, [&](auto &a) {
         a.trust_score = 1.0;
         a.kycd = false;
       });
-
-      it++;
+      eosio::print("Reset account ", name{it->name}, " | ");
     }
 
     accounts.modify(accounts.find(N(useraaaaaaaa)), _self, [&](auto &a) {
