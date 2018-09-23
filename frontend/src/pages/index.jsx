@@ -138,11 +138,15 @@ class Index extends Component {
                         <strong style={{ color: "green", weight: "bold" }}>KYC provider</strong>
                         }
                     </Typography>
-                    <Typography style={{ fontSize: 12 }} color="textSecondary" gutterBottom>
-                        KYC: {row.kycd ? "YES" : "NO"}
+                    <Typography style={{ fontSize: 20 }} color="textSecondary" gutterBottom>
+                        KYC: {
+                            row.kycd
+                            ? <span style={{color:'green'}}>YES</span>
+                            : <span style={{color:'red'}}>NO</span>
+                        }
                     </Typography>
                     <Typography component="pre">
-                        {parseFloat(row.trust_score).toFixed(2)}
+                        Trust: {parseFloat(row.trust_score).toFixed(2)}
                     </Typography>
                     <Typography component="pre">
                         <Button
