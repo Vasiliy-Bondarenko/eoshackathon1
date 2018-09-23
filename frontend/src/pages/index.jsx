@@ -17,6 +17,7 @@ import VoteBtn from './VoteBtn.jsx';
 // This is for demo purposes only!
 import accounts from '../accounts'
 import styles from '../styles'
+import Dashboard from '../Dashboard';
 
 // Index component
 class Index extends Component {
@@ -118,6 +119,7 @@ class Index extends Component {
         const { accountsTable, actingAs } = this.state;
         const { classes }                 = this.props;
 
+
         // generate each note as a card
         const generateCard = (index, row) => (
             <Card className={classes.card} key={index}>
@@ -180,6 +182,8 @@ class Index extends Component {
 
         return (
             <div>
+                <Dashboard Dashboard>
+                </Dashboard>
                 <AppBar position="static" color="default">
                     <Toolbar>
                         <Typography variant="title" color="inherit">

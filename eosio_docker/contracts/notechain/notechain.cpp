@@ -81,7 +81,7 @@ public:
   {
     require_auth(voter_name);
 
-    eosio_assert(vote_strength >= -100 && vote_strength <= 100, "vote strength must be between -10 and 10");
+    eosio_assert(vote_strength >= -100 && vote_strength <= 100, "vote strength must be between -100 and 100");
 
         auto voter_account = accounts.find(voter_name);
     eosio_assert(voter_account != accounts.end(), "voter account does not exist");
