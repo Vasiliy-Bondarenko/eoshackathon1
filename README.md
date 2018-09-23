@@ -1,5 +1,6 @@
 ## KYC
-KYC providers checks the person's id and makes a json similar to this:
+
+KYC providers check the person's id and makes a json similar to this:
 ```
 {
     expiring: "05-05-2019", // some time in the future
