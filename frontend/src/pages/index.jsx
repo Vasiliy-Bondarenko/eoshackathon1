@@ -167,9 +167,10 @@ class Index extends Component {
                         />
                         {actingAs === "kycprovider1" &&
                         <Button
+                            style={{margin: "10px"}}
                             onClick={e => {this.kycApprove( row.name )}}
                             variant="contained"
-                            color="primary"
+                            color="success"
                             className={classes.button}
                         >KYC approve</Button>
                         }
