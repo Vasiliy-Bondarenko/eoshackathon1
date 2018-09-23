@@ -69,7 +69,9 @@ class VoteBtn extends Component {
     render() {
         return (
             <div>
-                {this.state.voteValue}%
+                <div style={{ fontSize: 25, marginTop: "10px" }} >
+                    {this.state.voteValue}%
+                </div>
                 <Slider value={this.state.voteValue}
                         onChange={this.handleChange}
                         max={100}

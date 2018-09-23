@@ -19,8 +19,6 @@ import SimpleLineChart from './SimpleLineChart';
 import SimpleTable from './SimpleTable';
 
 
-import Img from 'react-image'
-
 const drawerWidth = 240;
 
 const styles = theme => ({
